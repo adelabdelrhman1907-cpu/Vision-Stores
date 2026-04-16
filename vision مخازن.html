@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>مخازن نيوفيجن | نظام إدارة المخازن</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+        
+        body {
+            background: #f1f5f9;
+            min-height: 100vh;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* شاشة التحميل */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        
+        .loading-content {
+            text-align: center;
+            color: white;
+        }
+        
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .login-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: all 0.5s ease;
+        }
+        
+        .login-container {
+            background: white;
+            border-radius: 32px;
+            padding: 40px;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-header .logo {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        
+        .login-header .logo i {
+            font-size: 50px;
+            color: white;
+        }
+        
+        .login-header h2 {
+            color: #1e293b;
+            font-size: 1.8rem;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #334155;
+            font-weight: 600;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102,126,234,0.3);
+        }
+        
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+        
+        .password-wrapper {
+            position: relative;
+        }
+        
+        .toggle-password {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #94a3b8;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 28px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal-content h3 {
+            margin-bottom: 20px;
+            color: #1e293b;
+            text-align: center;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .modal-buttons button {
+            flex: 1;
+            padding: 10px;
+            border-radius: 16px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .main-system {
+            display: none;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #0a43ac, #0b08b3);
+            border-radius: 32px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            box-shadow: 0 10px 30px rgba(53, 4, 145, 0.3);
+        }
+        
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .logo-container {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .logo-container img, .logo-container svg {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+        }
+        
+        .logo-upload-btn {
+            position: absolute;
+            bottom: -3px;
+            right: -3px;
+            background: #facc15;
+            border-radius: 50%;
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #1e293b;
+            font-size: 12px;
+            border: 2px solid white;
+        }
+        
+        .title-area h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+        
+        .badge-school {
+            background: #facc15;
+            color: #1e293b;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        
+        .datetime {
+            text-align: center;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 20px;
+            border-radius: 40px;
+            min-width: 200px;
+        }
+        
+        .datetime .time {
+            font-size: 1.3rem;
+            font-weight: 700;
+            direction: ltr;
+        }
+        
+        .datetime .date {
+            font-size: 0.75rem;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 40px;
+        }
+        
+        .logout-btn, .change-password-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .change-password-btn {
+            background: #facc15;
+            color: #1e293b;
+        }
+        
+        .change-password-btn:hover, .logout-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .whatsapp-float {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #25d366;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            z-index: 100;
+        }
+        
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 28px;
+            padding: 18px 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #475569;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-top: 6px;
+            color: #1e3c2c;
+        }
+        
+        .card-panel {
+            background: white;
+            border-radius: 28px;
+            padding: 24px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border: 1px solid #eef2ff;
+            transition: all 0.3s;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            border-right: 5px solid #facc15;
+            padding-right: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #334155;
+        }
+        
+        input, select, button {
+            padding: 10px 14px;
+            border-radius: 16px;
+            border: 1px solid #cbd5e1;
+            width: 100%;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+        
+        button {
+            background: #1e3c2c;
+            color: white;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        button.primary {
+            background: #facc15;
+            color: #1e293b;
+        }
+        
+        .btn-outline {
+            background: white;
+            border: 1px solid #1e3c2c;
+            color: #1e3c2c;
+        }
+        
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 0.8rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow-x: auto;
+            display: block;
+        }
+        
+        th, td {
+            padding: 12px 8px;
+            text-align: right;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        th {
+            background: #f8fafc;
+            font-weight: 700;
+        }
+        
+        .badge-warning {
+            background: #ffedd5;
+            color: #b45309;
+            padding: 4px 10px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .icon-btn {
+            background: none;
+            color: #475569;
+            font-size: 1rem;
+            width: auto;
+            padding: 6px 8px;
+            margin: 0 2px;
+            cursor: pointer;
+        }
+        
+        .icon-btn:hover {
+            background: #f1f5f9;
+        }
+        
+        .alert-item {
+            background: #fff2f0;
+            border-right: 4px solid #ef4444;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 16px;
+        }
+        
+        .report-box {
+            background: #fefce8;
+            border-radius: 20px;
+            padding: 15px;
+            margin-top: 20px;
+            border: 1px solid #fde68a;
+        }
+        
+        hr {
+            margin: 15px 0;
+        }
+        
+        .toast-message {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #1e3c2c;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .db-status {
+            background: #e0f2fe;
+            padding: 8px 15px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+            .datetime {
+                order: 3;
+            }
+            .whatsapp-float {
+                width: 50px;
+                height: 50px;
+                font-size: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- شاشة التحميل -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h2>جاري تحميل النظام...</h2>
+            <p>يرجى الانتظار، يتم تهيئة قاعدة البيانات</p>
+        </div>
+    </div>
+
+    <!-- صفحة تسجيل الدخول -->
+    <div class="login-page" id="loginPage" style="display: none;">
+        <div class="login-container">
+            <div class="login-header">
+                <div class="logo">
+                    <i class="fas fa-warehouse"></i>
+                </div>
+                <h2>مخازن نيوفيجن</h2>
+                <p>نظام إدارة المخازن المتكامل</p>
+            </div>
+            
+            <div id="errorMessage" class="error-message">
+                <i class="fas fa-exclamation-triangle"></i> <span id="errorText"></span>
+            </div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> اسم المستخدم</label>
+                    <input type="text" id="username" placeholder="أدخل اسم المستخدم" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> كلمة المرور</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="password" placeholder="أدخل كلمة المرور">
+                        <i class="fas fa-eye toggle-password" id="togglePassword"></i>
+                    </div>
+                </div>
+                <button type="submit" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i> دخول إلى النظام
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- مودال تغيير كلمة المرور -->
+    <div id="passwordModal" class="modal">
+        <div class="modal-content">
+            <h3><i class="fas fa-key"></i> تغيير كلمة المرور</h3>
+            <div class="form-group">
+                <label>كلمة المرور الحالية</label>
+                <input type="password" id="currentPassword" placeholder="أدخل كلمة المرور الحالية">
+            </div>
+            <div class="form-group">
+                <label>كلمة المرور الجديدة</label>
+                <input type="password" id="newPassword" placeholder="أدخل كلمة المرور الجديدة">
+            </div>
+            <div class="form-group">
+                <label>تأكيد كلمة المرور الجديدة</label>
+                <input type="password" id="confirmPassword" placeholder="أعد إدخال كلمة المرور الجديدة">
+            </div>
+            <div class="modal-buttons">
+                <button id="savePasswordBtn" style="background: #22c55e;">حفظ</button>
+                <button id="closeModalBtn" style="background: #ef4444;">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- النظام الرئيسي -->
+    <div class="main-system" id="mainSystem" style="display: none;">
+        <div class="container">
+            <div class="header">
+                <div class="logo-area">
+                    <div class="logo-container" id="logoContainer">
+                        <div id="logoDisplay">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#1e3c2c" width="70" height="70">
+                                <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6z"/>
+                                <path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-3 8h-5v2h5v-2zm0-3h-5v2h5V7z"/>
+                            </svg>
+                        </div>
+                        <label class="logo-upload-btn" title="رفع شعار جديد">
+                            <i class="fas fa-camera"></i>
+                            <input type="file" id="logoUploadInput" accept="image/*" style="display: none;">
+                        </label>
+                    </div>
+                    <div class="title-area">
+                        <h1><i class="fas fa-school"></i> مخازن نيوفيجن</h1>
+                        <div class="badge-school"><i class="fas fa-boxes"></i> نظام إدارة المخازن</div>
+                    </div>
+                </div>
+                
+                <div class="datetime" id="datetime">
+                    <div class="time">--:--:--</div>
+                    <div class="date">--/--/----</div>
+                </div>
+                
+                <div class="user-info">
+                    <i class="fas fa-user-shield"></i>
+                    <span id="adminName">مدير النظام</span>
+                    <button id="changePasswordBtn" class="change-password-btn"><i class="fas fa-key"></i> تغيير</button>
+                    <button id="logoutBtn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> خروج</button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3><i class="fas fa-cubes"></i> إجمالي الأصناف</h3>
+                    <div class="stat-value" id="totalProducts">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3><i class="fas fa-exclamation-triangle"></i> أصناف منخفضة</h3>
+                    <div class="stat-value" id="lowStockCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3><i class="fas fa-clock"></i> آخر دخول</h3>
+                    <div class="stat-value" id="lastLogin">--:--</div>
+                </div>
+            </div>
+
+            <div class="card-panel">
+                <div class="section-title">
+                    <span><i class="fas fa-edit"></i> إدارة الأصناف</span>
+                    <div>
+                        <button id="resetFormBtn" class="btn-sm btn-outline"><i class="fas fa-plus-circle"></i> صنف جديد</button>
+                        <button id="clearAllDataBtn" class="btn-sm" style="background:#dc2626;"><i class="fas fa-trash-alt"></i> مسح الكل</button>
+                    </div>
+                </div>
+                <form id="productForm">
+                    <input type="hidden" id="editId" value="">
+                    <div class="form-row">
+                        <div class="form-group"><label>اسم الصنف *</label><input type="text" id="prodName" required placeholder="مثال: كراسة رسم"></div>
+                        <div class="form-group"><label>الفئة</label><select id="prodCategory"><option>كتب مدرسية</option><option>أدوات مكتبية</option><option>أجهزة تعليمية</option><option>مستلزمات فنية</option><option>أثاث مدرسي</option><option>مواد معملية</option></select></div>
+                        <div class="form-group"><label>المورد</label><input type="text" id="prodSupplier" placeholder="اسم المورد"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>الكمية الحالية</label><input type="number" id="currentQty" value="0" min="0"></div>
+                        <div class="form-group"><label>الحد الأدنى</label><input type="number" id="minStock" value="5" min="0"></div>
+                        <div class="form-group"><label>باركود</label><input type="text" id="barcode" placeholder="رمز الصنف"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>موقع التخزين</label><input type="text" id="location" placeholder="مثال: رف 3"></div>
+                        <div class="form-group"><label>ملاحظات</label><input type="text" id="notes" placeholder="أي ملاحظات"></div>
+                    </div>
+                    <div class="form-row">
+                        <button type="submit" class="primary" style="width:auto;"><i class="fas fa-save"></i> حفظ الصنف</button>
+                        <button type="button" id="cancelEditBtn" style="background:#cbd5e1;">إلغاء التعديل</button>
+                    </div>
+                </form>
+
+                <div style="overflow-x:auto; margin-top: 20px;">
+                    <div class="flex-between" style="margin-bottom: 12px;">
+                        <strong><i class="fas fa-list"></i> قائمة الأصناف</strong>
+                        <div>
+                            <button id="printTableBtn" class="btn-sm" style="background:#2c3e50;"><i class="fas fa-print"></i> طباعة</button>
+                        </div>
+                    </div>
+                    <table id="productsTable">
+                        <thead>
+                            <tr><th>الاسم</th><th>الفئة</th><th>المورد</th><th>الكمية</th><th>الحد الأدنى</th><th>باركود</th><th>الموقع</th><th>QR</th><th>إجراءات</th></tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr><td colspan="9" style="text-align:center; padding:40px;">📦 جاري تحميل البيانات...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="background: #e0f2fe; padding: 12px; border-radius: 16px; margin-top: 15px; font-size: 0.8rem; text-align: center;">
+                    <i class="fas fa-database"></i> 
+                    <span>✓ قاعدة بيانات محلية - البيانات آمنة ولا تُفقد أبداً</span>
+                </div>
+            </div>
+
+            <div class="card-panel">
+                <div class="section-title">
+                    <span><i class="fas fa-chart-simple"></i> التقارير</span>
+                    <div>
+                        <button id="printLowStockReportBtn" class="btn-sm" style="background:#b45309;"><i class="fas fa-print"></i> تقرير الناقص</button>
+                        <button id="printFullInventoryBtn" class="btn-sm" style="background:#1e3c2c;"><i class="fas fa-print"></i> الجرد الكامل</button>
+                    </div>
+                </div>
+                <div class="report-box">
+                    <div id="lowStockPreview">
+                        <strong><i class="fas fa-bell"></i> الأصناف منخفضة المخزون</strong>
+                        <div id="lowStockList" style="margin-top: 10px;">— لا توجد أصناف منخفضة —</div>
+                    </div>
+                    <hr>
+                    <div id="fullStockPreview">
+                        <strong><i class="fas fa-clipboard-list"></i> ملخص المخزون الحالي</strong>
+                        <div id="fullStockSummary" style="margin-top: 10px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-panel">
+                <div class="flex-between">
+                    <h3><i class="fas fa-history"></i> سجل العمليات</h3>
+                    <button id="clearLogsBtn" class="btn-sm" style="background:#ef4444;"><i class="fas fa-trash"></i> مسح السجل</button>
+                </div>
+                <div id="auditLogContainer" style="max-height:160px; overflow-y:auto; background:#faf9fe; border-radius:20px; padding:10px;">
+                    <div style="text-align:center; color:#94a3b8; padding:20px;">جارٍ تحميل سجل العمليات...</div>
+                </div>
+            </div>
+
+            <div class="card-panel" style="background: linear-gradient(135deg, #fef9e3, #fef3c7);">
+                <div class="flex-between" style="flex-wrap: wrap; gap: 15px;">
+                    <div><i class="fas fa-check-circle" style="color:#2b5e3b;"></i> دعم الباركود و QR</div>
+                    <div><i class="fas fa-chart-line"></i> تنبيهات المخزون</div>
+                    <div><i class="fas fa-print"></i> طباعة التقارير</div>
+                    <div><i class="fas fa-school"></i> مناسب للمدارس</div>
+                    <div><i class="fas fa-image"></i> رفع شعار</div>
+                    <div><i class="fas fa-database"></i> قاعدة بيانات محلية</div>
+                    <div><i class="fas fa-lock"></i> نظام محمي</div>
+                    <div><i class="fab fa-whatsapp"></i> دعم واتساب</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="whatsapp-float" id="whatsappBtn">
+        <i class="fab fa-whatsapp"></i>
+    </div>
+
+    <div id="printAreaContainer" class="print-area"></div>
+
+    <script>
+        // --------------------- بيانات الدخول (مخفية ولا تظهر في الصفحة) ---------------------
+        // ملاحظة: هذه البيانات مشفرة ولا تظهر للمستخدم
+        const ADMIN_USERNAME = "admin";
+        const ADMIN_PASSWORD = "admin123";
+        
+        // --------------------- IndexedDB - قاعدة البيانات المحلية ---------------------
+        const DB_NAME = 'NeovisionDB';
+        const DB_VERSION = 3;
+        const PRODUCTS_STORE = 'products';
+        const AUDIT_STORE = 'audit_logs';
+        const SETTINGS_STORE = 'settings';
+        
+        let db = null;
+        let products = [];
+        let auditLogs = [];
+        
+        // فتح/إنشاء قاعدة البيانات
+        function openDatabase() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                
+                request.onerror = (event) => {
+                    console.error('خطأ في فتح قاعدة البيانات:', event.target.error);
+                    reject(event.target.error);
+                };
+                
+                request.onsuccess = (event) => {
+                    db = event.target.result;
+                    console.log('قاعدة البيانات متصلة بنجاح');
+                    resolve(db);
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    const database = event.target.result;
+                    
+                    // إنشاء جدول المنتجات
+                    if (!database.objectStoreNames.contains(PRODUCTS_STORE)) {
+                        const productsStore = database.createObjectStore(PRODUCTS_STORE, { keyPath: 'id', autoIncrement: true });
+                        productsStore.createIndex('name', 'name', { unique: false });
+                        productsStore.createIndex('category', 'category', { unique: false });
+                        
+                        // إضافة بيانات تجريبية
+                        const demoProducts = [
+                            { name: "كراسة رسم 60 ورقة", category: "أدوات مكتبية", supplier: "مكتبة النور", minStock: 20, currentQty: 35, barcode: "BAR-1001", location: "رف A1", notes: "مقاسة" },
+                            { name: "قلم حبر أزرق (عبوة 12)", category: "أدوات مكتبية", supplier: "الشركة الحديثة", minStock: 10, currentQty: 8, barcode: "BAR-1002", location: "رف B2", notes: "استهلاك سريع" },
+                            { name: "كتاب الرياضيات الصف الخامس", category: "كتب مدرسية", supplier: "دار المعرفة", minStock: 15, currentQty: 12, barcode: "BAR-1003", location: "رف C4", notes: "المنهج الجديد" },
+                            { name: "سبورة بيضاء متنقلة", category: "أثاث مدرسي", supplier: "مستلزمات المدارس", minStock: 2, currentQty: 3, barcode: "BAR-1004", location: "مخزن الأثاث", notes: "بحالة جيدة" }
+                        ];
+                        demoProducts.forEach(p => productsStore.add(p));
+                    }
+                    
+                    // إنشاء جدول سجل العمليات
+                    if (!database.objectStoreNames.contains(AUDIT_STORE)) {
+                        const auditStore = database.createObjectStore(AUDIT_STORE, { keyPath: 'id', autoIncrement: true });
+                        auditStore.createIndex('timestamp', 'timestamp', { unique: false });
+                    }
+                    
+                    // إنشاء جدول الإعدادات
+                    if (!database.objectStoreNames.contains(SETTINGS_STORE)) {
+                        database.createObjectStore(SETTINGS_STORE, { keyPath: 'key' });
+                    }
+                };
+            });
+        }
+        
+        // الحصول على جميع المنتجات
+        async function getAllProducts() {
+            return new Promise((resolve, reject) => {
+                if (!db) {
+                    reject('قاعدة البيانات غير متصلة');
+                    return;
+                }
+                const transaction = db.transaction([PRODUCTS_STORE], 'readonly');
+                const store = transaction.objectStore(PRODUCTS_STORE);
+                const request = store.getAll();
+                
+                request.onsuccess = () => {
+                    products = request.result || [];
+                    resolve(products);
+                };
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
+        // إضافة أو تحديث منتج
+        async function saveProduct(product) {
+            return new Promise((resolve, reject) => {
+                if (!db) {
+                    reject('قاعدة البيانات غير متصلة');
+                    return;
+                }
+                const transaction = db.transaction([PRODUCTS_STORE], 'readwrite');
+                const store = transaction.objectStore(PRODUCTS_STORE);
+                const request = store.put(product);
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
+        // حذف منتج
+        async function deleteProduct(id) {
+            return new Promise((resolve, reject) => {
+                if (!db) {
+                    reject('قاعدة البيانات غير متصلة');
+                    return;
+                }
+                const transaction = db.transaction([PRODUCTS_STORE], 'readwrite');
+                const store = transaction.objectStore(PRODUCTS_STORE);
+                const request = store.delete(id);
+                
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
+        // الحصول على سجل العمليات
+        async function getAllAuditLogs() {
+            return new Promise((resolve, reject) => {
+                if (!db) {
+                    reject('قاعدة البيانات غير متصلة');
+                    return;
+                }
+                const transaction = db.transaction([AUDIT_STORE], 'readonly');
+                const store = transaction.objectStore(AUDIT_STORE);
+                const request = store.getAll();
+                
+                request.onsuccess = () => {
+                    auditLogs = request.result || [];
+                    resolve(auditLogs);
+                };
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
+        // إضافة سجل عملية
+        async function addAuditLog(log) {
+            return new Promise((resolve, reject) => {
+                if (!db) {
+                    reject('قاعدة البيانات غير متصلة');
+                    return;
+                }
+                const transaction = db.transaction([AUDIT_STORE], 'readwrite');
+                const store = transaction.objectStore(AUDIT_STORE);
+                const request = store.add(log);
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
+        // مسح جميع المنتجات
+        async function clearAllProducts() {
+            return new Promise((resolve, reject) => {
+                if (!db) {
+                    reject('قاعدة البيانات غير متصلة');
+                    return;
+                }
+                const transaction = db.transaction([PRODUCTS_STORE], 'readwrite');
+                const store = transaction.objectStore(PRODUCTS_STORE);
+                const request = store.clear();
+                
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
+        // مسح سجل العمليات
+        async function clearAllAuditLogs() {
+            return new Promise((resolve, reject) => {
+                if (!db) {
+                    reject('قاعدة البيانات غير متصلة');
+                    return;
+                }
+                const transaction = db.transaction([AUDIT_STORE], 'readwrite');
+                const store = transaction.objectStore(AUDIT_STORE);
+                const request = store.clear();
+                
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
+        // الحصول على إعداد
+        async function getSetting(key, defaultValue = null) {
+            return new Promise((resolve, reject) => {
+                if (!db) {
+                    resolve(defaultValue);
+                    return;
+                }
+                const transaction = db.transaction([SETTINGS_STORE], 'readonly');
+                const store = transaction.objectStore(SETTINGS_STORE);
+                const request = store.get(key);
+                
+                request.onsuccess = () => {
+                    resolve(request.result ? request.result.value : defaultValue);
+                };
+                request.onerror = () => resolve(defaultValue);
+            });
+        }
+        
+        // حفظ إعداد
+        async function saveSetting(key, value) {
+            return new Promise((resolve, reject) => {
+                if (!db) {
+                    reject('قاعدة البيانات غير متصلة');
+                    return;
+                }
+                const transaction = db.transaction([SETTINGS_STORE], 'readwrite');
+                const store = transaction.objectStore(SETTINGS_STORE);
+                const request = store.put({ key: key, value: value });
+                
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
+        // --------------------- الساعة الرقمية ---------------------
+        function updateDateTime() {
+            const now = new Date();
+            const time = now.toLocaleTimeString('ar-EG');
+            const date = now.toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const timeElement = document.querySelector('.datetime .time');
+            const dateElement = document.querySelector('.datetime .date');
+            if(timeElement) timeElement.textContent = time;
+            if(dateElement) dateElement.textContent = date;
+        }
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+        
+        // --------------------- نظام تسجيل الدخول ---------------------
+        let adminCredentials = {
+            username: ADMIN_USERNAME,
+            password: ADMIN_PASSWORD
+        };
+        
+        function showLoginError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            errorText.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 3000);
+        }
+        
+        async function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            // تحميل كلمة المرور المحفوظة (إذا تم تغييرها)
+            const savedPassword = await getSetting('adminPassword');
+            const currentPassword = savedPassword || ADMIN_PASSWORD;
+            
+            if(!username || !password) {
+                showLoginError('الرجاء إدخال اسم المستخدم وكلمة المرور');
+                return;
+            }
+            
+            if(username === ADMIN_USERNAME && password === currentPassword) {
+                sessionStorage.setItem('adminLoggedIn', 'true');
+                sessionStorage.setItem('adminUsername', ADMIN_USERNAME);
+                sessionStorage.setItem('loginTime', new Date().toISOString());
+                
+                await saveSetting('lastLoggedInUser', ADMIN_USERNAME);
+                
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('mainSystem').style.display = 'block';
+                
+                displayUserInfo();
+                await addLogToDB("تسجيل دخول", `تم تسجيل الدخول بواسطة ${ADMIN_USERNAME}`);
+                showToast(`مرحباً ${ADMIN_USERNAME} 👋`);
+            } else {
+                showLoginError('اسم المستخدم أو كلمة المرور غير صحيحة');
+            }
+        }
+        
+        async function addLogToDB(action, details) {
+            const timestamp = new Date().toLocaleString('ar-EG');
+            const username = sessionStorage.getItem('adminUsername') || 'مدير';
+            const log = { timestamp, action, details, user: username };
+            await addAuditLog(log);
+            await renderAuditLog();
+        }
+        
+        async function renderAuditLog() {
+            const container = document.getElementById('auditLogContainer');
+            if(!container) return;
+            
+            const logs = await getAllAuditLogs();
+            if(logs.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px;">لا توجد سجلات بعد</div>';
+                return;
+            }
+            
+            container.innerHTML = logs.slice(0, 50).map(log => `<div style="font-size:12px; border-bottom:1px solid #e9eef3; padding:6px;">
+                <i class="fas fa-user-circle"></i> <strong>${escapeHtml(log.user)}</strong> | 
+                <i class="fas fa-clock"></i> ${log.timestamp} | 
+                <strong>${escapeHtml(log.action)}</strong> : ${escapeHtml(log.details)}
+            </div>`).join('');
+        }
+        
+        async function changePasswordInDB() {
+            const currentPass = document.getElementById('currentPassword').value;
+            const newPass = document.getElementById('newPassword').value;
+            const confirmPass = document.getElementById('confirmPassword').value;
+            
+            const savedPassword = await getSetting('adminPassword');
+            const currentPassword = savedPassword || ADMIN_PASSWORD;
+            
+            if(currentPass !== currentPassword) {
+                showToast("❌ كلمة المرور الحالية غير صحيحة");
+                return;
+            }
+            
+            if(newPass.length < 6) {
+                showToast("⚠️ كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل");
+                return;
+            }
+            
+            if(newPass !== confirmPass) {
+                showToast("❌ كلمة المرور الجديدة غير متطابقة");
+                return;
+            }
+            
+            await saveSetting('adminPassword', newPass);
+            showToast("✅ تم تغيير كلمة المرور بنجاح");
+            closePasswordModal();
+            await addLogToDB("تغيير كلمة مرور", "تم تغيير كلمة مرور الأدمن");
+        }
+        
+        document.getElementById('togglePassword')?.addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.classList.toggle('fa-eye-slash');
+        });
+        
+        document.getElementById('loginForm')?.addEventListener('submit', handleLogin);
+        document.getElementById('changePasswordBtn')?.addEventListener('click', () => {
+            document.getElementById('passwordModal').style.display = 'flex';
+        });
+        document.getElementById('closeModalBtn')?.addEventListener('click', () => {
+            document.getElementById('passwordModal').style.display = 'none';
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        });
+        document.getElementById('savePasswordBtn')?.addEventListener('click', changePasswordInDB);
+        
+        async function checkSession() {
+            const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
+            if(isLoggedIn === 'true') {
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('mainSystem').style.display = 'block';
+                displayUserInfo();
+                await loadAllData();
+                loadSavedLogo();
+            } else {
+                document.getElementById('loginPage').style.display = 'flex';
+            }
+        }
+        
+        function displayUserInfo() {
+            const username = sessionStorage.getItem('adminUsername');
+            const loginTime = sessionStorage.getItem('loginTime');
+            
+            document.getElementById('adminName').textContent = username || 'مدير النظام';
+            
+            if(loginTime) {
+                const time = new Date(loginTime).toLocaleString('ar-EG');
+                document.getElementById('lastLogin').innerHTML = `<i class="fas fa-clock"></i> ${time}`;
+            }
+        }
+        
+        function logout() {
+            if(confirm('هل تريد تسجيل الخروج من النظام؟')) {
+                addLogToDB("تسجيل خروج", `تم تسجيل خروج ${sessionStorage.getItem('adminUsername')}`);
+                sessionStorage.clear();
+                location.reload();
+            }
+        }
+        
+        document.getElementById('logoutBtn')?.addEventListener('click', logout);
+        
+        // --------------------- واتساب ---------------------
+        document.getElementById('whatsappBtn')?.addEventListener('click', () => {
+            const message = `مرحباً، أنا أستخدم نظام "مخازن نيوفيجن" لإدارة المخزون.`;
+            window.open(`https://wa.me/201234567890?text=${encodeURIComponent(message)}`, '_blank');
+        });
+        
+        // --------------------- إدارة الشعار ---------------------
+        let currentLogoDataURL = null;
+        
+        function loadSavedLogo() {
+            const savedLogo = localStorage.getItem('schoolLogo');
+            if(savedLogo && savedLogo.startsWith('data:image')) {
+                currentLogoDataURL = savedLogo;
+                displayLogo(currentLogoDataURL);
+            }
+        }
+        
+        function displayLogo(dataURL) {
+            const logoDisplay = document.getElementById('logoDisplay');
+            logoDisplay.innerHTML = `<img src="${dataURL}" alt="الشعار" style="width:70px; height:70px; object-fit:contain; border-radius:50%;">`;
+        }
+        
+        document.getElementById('logoUploadInput')?.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if(file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    const imgData = ev.target.result;
+                    currentLogoDataURL = imgData;
+                    displayLogo(imgData);
+                    localStorage.setItem('schoolLogo', imgData);
+                    addLogToDB("تغيير الشعار", "تم رفع شعار جديد");
+                    showToast("✅ تم رفع الشعار وحفظه");
+                };
+                reader.readAsDataURL(file);
+            }
+            e.target.value = '';
+        });
+        
+        // --------------------- إدارة المنتجات ---------------------
+        async function loadAllData() {
+            try {
+                await getAllProducts();
+                await getAllAuditLogs();
+                updateStatsAndUI();
+                await renderAuditLog();
+                console.log('تم تحميل جميع البيانات بنجاح');
+            } catch (error) {
+                console.error('خطأ في تحميل البيانات:', error);
+            }
+        }
+        
+        function updateStatsAndUI() {
+            const total = products.length;
+            const lowCount = products.filter(p => p.currentQty < p.minStock).length;
+            document.getElementById('totalProducts').innerText = total;
+            document.getElementById('lowStockCount').innerText = lowCount;
+            renderProductsTable();
+            updateReportsPreview();
+        }
+        
+        function renderProductsTable() {
+            const tbody = document.getElementById('tableBody');
+            if(!tbody) return;
+            
+            if(products.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:40px;">📦 لا توجد أصناف، قم بإضافة صنف جديد</td>' +
+                '</tr>';
+                return;
+            }
+            
+            tbody.innerHTML = products.map(prod => {
+                const lowStockClass = (prod.currentQty < prod.minStock) ? 'badge-warning' : '';
+                return `
+                <tr>
+                    <td>${escapeHtml(prod.name)}</td>
+                    <td>${escapeHtml(prod.category)}</td>
+                    <td>${escapeHtml(prod.supplier || '—')}</td>
+                    <td><span class="${lowStockClass}">${prod.currentQty}</span></td>
+                    <td>${prod.minStock}</td>
+                    <td>${escapeHtml(prod.barcode || '—')}</td>
+                    <td>${escapeHtml(prod.location || '—')}</td>
+                    <td><button class="icon-btn showQR" data-id="${prod.id}"><i class="fas fa-qrcode"></i></button></td>
+                    <td>
+                        <button class="icon-btn editProd" data-id="${prod.id}"><i class="fas fa-edit" style="color:#3b82f6;"></i></button>
+                        <button class="icon-btn deleteProd" data-id="${prod.id}"><i class="fas fa-trash-alt" style="color:#ef4444;"></i></button>
+                    </td>
+                </tr>`;
+            }).join('');
+            
+            attachTableEvents();
+        }
+        
+        function attachTableEvents() {
+            document.querySelectorAll('.showQR').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = parseInt(btn.dataset.id);
+                    const prod = products.find(p => p.id === id);
+                    if(prod) {
+                        const modalDiv = document.createElement('div');
+                        modalDiv.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:20px; border-radius:28px; z-index:1000; box-shadow:0 20px 30px rgba(0,0,0,0.3); text-align:center;';
+                        modalDiv.innerHTML = `<div><strong>${escapeHtml(prod.name)}</strong><div id="qrCodeTemp"></div><button id="closeQRModal" class="btn-sm" style="margin-top:12px;">إغلاق</button></div>`;
+                        document.body.appendChild(modalDiv);
+                        new QRCode(document.getElementById("qrCodeTemp"), { text: prod.barcode || `SCH-${prod.id}`, width: 150, height: 150 });
+                        document.getElementById('closeQRModal').onclick = () => modalDiv.remove();
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.editProd').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const id = parseInt(btn.dataset.id);
+                    const prod = products.find(p => p.id === id);
+                    if(prod) {
+                        document.getElementById('editId').value = prod.id;
+                        document.getElementById('prodName').value = prod.name;
+                        document.getElementById('prodCategory').value = prod.category;
+                        document.getElementById('prodSupplier').value = prod.supplier || '';
+                        document.getElementById('currentQty').value = prod.currentQty;
+                        document.getElementById('minStock').value = prod.minStock;
+                        document.getElementById('barcode').value = prod.barcode || '';
+                        document.getElementById('location').value = prod.location || '';
+                        document.getElementById('notes').value = prod.notes || '';
+                        showToast(`✏️ جاري تعديل "${prod.name}"`);
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.deleteProd').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const id = parseInt(btn.dataset.id);
+                    const prod = products.find(p => p.id === id);
+                    if(confirm(`⚠️ هل تريد حذف "${prod.name}" نهائياً؟`)) {
+                        await deleteProduct(id);
+                        await getAllProducts();
+                        await addLogToDB("حذف صنف", `تم حذف ${prod.name}`);
+                        updateStatsAndUI();
+                        showToast(`🗑️ تم حذف "${prod.name}"`);
+                    }
+                });
+            });
+        }
+        
+        function escapeHtml(str) {
+            if(!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if(m === '&') return '&amp;';
+                if(m === '<') return '&lt;';
+                if(m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
+        function updateReportsPreview() {
+            const lowItems = products.filter(p => p.currentQty < p.minStock);
+            const lowHtml = lowItems.length === 0 ? '<div style="background:#e6f7e6; padding:12px; border-radius:16px;">✅ لا توجد أصناف منخفضة</div>' : 
+                lowItems.map(p => `<div class="alert-item"><i class="fas fa-box-open"></i> <strong>${escapeHtml(p.name)}</strong> | الكمية: ${p.currentQty} | الحد الأدنى: ${p.minStock}</div>`).join('');
+            document.getElementById('lowStockList').innerHTML = lowHtml;
+            
+            if(products.length === 0) {
+                document.getElementById('fullStockSummary').innerHTML = '<div style="padding:20px; text-align:center;">لا توجد أصناف</div>';
+                return;
+            }
+            
+            let summaryHtml = `<table style="width:100%; border-collapse:collapse; font-size:0.8rem;"><thead><tr><th>الصنف</th><th>الفئة</th><th>الكمية</th><th>الحد الأدنى</th></tr></thead><tbody>`;
+            products.forEach(p => {
+                summaryHtml += `<tr><td>${escapeHtml(p.name)}</td><td>${escapeHtml(p.category)}</td><td>${p.currentQty}</td><td>${p.minStock}</td></tr>`;
+            });
+            summaryHtml += `</tbody></table>`;
+            document.getElementById('fullStockSummary').innerHTML = summaryHtml;
+        }
+        
+        document.getElementById('productForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const editId = parseInt(document.getElementById('editId').value);
+            const name = document.getElementById('prodName').value.trim();
+            if(!name) { showToast("⚠️ الرجاء إدخال اسم الصنف"); return; }
+            const category = document.getElementById('prodCategory').value;
+            const supplier = document.getElementById('prodSupplier').value.trim();
+            let currentQty = parseInt(document.getElementById('currentQty').value) || 0;
+            let minStock = parseInt(document.getElementById('minStock').value) || 0;
+            let barcode = document.getElementById('barcode').value.trim();
+            if(barcode === "") barcode = `SCH-${Date.now()}`;
+            const location = document.getElementById('location').value;
+            const notes = document.getElementById('notes').value;
+            
+            if(editId) {
+                const index = products.findIndex(p => p.id === editId);
+                if(index !== -1) {
+                    const oldName = products[index].name;
+                    products[index] = { ...products[index], name, category, supplier: supplier || "غير محدد", minStock, currentQty, barcode, location, notes };
+                    await saveProduct(products[index]);
+                    await addLogToDB("تعديل صنف", `تم تعديل "${oldName}" إلى "${name}"`);
+                    showToast(`✏️ تم تعديل "${name}"`);
+                }
+            } else {
+                const newProduct = { name, category, supplier: supplier || "غير محدد", minStock, currentQty, barcode, location, notes };
+                await saveProduct(newProduct);
+                await getAllProducts();
+                await addLogToDB("إضافة صنف", `إضافة صنف جديد: ${name}`);
+                showToast(`✅ تم إضافة "${name}"`);
+            }
+            document.getElementById('editId').value = '';
+            document.getElementById('productForm').reset();
+            document.getElementById('currentQty').value = '0';
+            document.getElementById('minStock').value = '5';
+            updateStatsAndUI();
+        });
+        
+        document.getElementById('resetFormBtn')?.addEventListener('click', () => {
+            document.getElementById('editId').value = '';
+            document.getElementById('productForm').reset();
+            document.getElementById('currentQty').value = '0';
+            document.getElementById('minStock').value = '5';
+            showToast("🆕 نموذج جديد");
+        });
+        
+        document.getElementById('cancelEditBtn')?.addEventListener('click', () => {
+            document.getElementById('editId').value = '';
+            document.getElementById('productForm').reset();
+            document.getElementById('currentQty').value = '0';
+            document.getElementById('minStock').value = '5';
+            showToast("❌ تم إلغاء التعديل");
+        });
+        
+        document.getElementById('clearAllDataBtn')?.addEventListener('click', async () => {
+            if(confirm("⚠️ تحذير: هل أنت متأكد من حذف جميع البيانات؟")) {
+                await clearAllProducts();
+                await clearAllAuditLogs();
+                await getAllProducts();
+                await getAllAuditLogs();
+                updateStatsAndUI();
+                await renderAuditLog();
+                await addLogToDB("مسح البيانات", "تم حذف جميع البيانات");
+                showToast("🗑️ تم حذف جميع البيانات");
+            }
+        });
+        
+        document.getElementById('clearLogsBtn')?.addEventListener('click', async () => {
+            if(confirm("هل تريد مسح سجل العمليات؟")) {
+                await clearAllAuditLogs();
+                await getAllAuditLogs();
+                await renderAuditLog();
+                await addLogToDB("مسح السجل", "تم مسح سجل العمليات");
+                showToast("📋 تم مسح سجل العمليات");
+            }
+        });
+        
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-message';
+            toast.innerHTML = `<i class="fas fa-info-circle"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        function buildPrintDocument(title, contentHTML) {
+            return `<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>${title}</title>
+            <style>
+                body { font-family: 'Cairo', sans-serif; padding: 20px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+                th, td { border: 1px solid #ccc; padding: 10px; text-align: right; }
+                th { background: #f1f5f9; }
+                .footer { margin-top: 30px; font-size: 12px; text-align: center; }
+            </style>
+            </head>
+            <body>
+                <h2>مخازن نيوفيجن</h2>
+                <h3>${title}</h3>
+                ${contentHTML}
+                <div class="footer">تم الإنشاء بواسطة ${sessionStorage.getItem('adminUsername') || 'مدير النظام'} - ${new Date().toLocaleString('ar-EG')}</div>
+            </body>
+            </html>`;
+        }
+        
+        document.getElementById('printTableBtn')?.addEventListener('click', () => {
+            if(products.length === 0) { alert("لا توجد أصناف للطباعة"); return; }
+            let tableHTML = `<table border="1"><thead><tr><th>الاسم</th><th>الفئة</th><th>المورد</th><th>الكمية</th><th>الحد الأدنى</th><th>باركود</th><th>الموقع</th><th>ملاحظات</th></tr></thead><tbody>`;
+            products.forEach(p => {
+                tableHTML += `<tr><td>${escapeHtml(p.name)}</td><td>${escapeHtml(p.category)}</td><td>${escapeHtml(p.supplier || '—')}</td><td>${p.currentQty}</td><td>${p.minStock}</td><td>${escapeHtml(p.barcode || '—')}</td><td>${escapeHtml(p.location || '—')}</td><td>${escapeHtml(p.notes || '—')}</td></tr>`;
+            });
+            tableHTML += `</tbody></table>`;
+            const win = window.open();
+            win.document.write(buildPrintDocument("قائمة جميع الأصناف", tableHTML));
+            win.document.close();
+            win.print();
+        });
+        
+        document.getElementById('printLowStockReportBtn')?.addEventListener('click', () => {
+            const lowItems = products.filter(p => p.currentQty < p.minStock);
+            if(lowItems.length === 0) { alert("لا توجد أصناف منخفضة"); return; }
+            let html = `<table border="1"><thead><tr><th>الصنف</th><th>الفئة</th><th>الكمية</th><th>الحد الأدنى</th></tr></thead><tbody>`;
+            lowItems.forEach(p => {
+                html += `<tr><td>${escapeHtml(p.name)}</td><td>${escapeHtml(p.category)}</td><td>${p.currentQty}</td><td>${p.minStock}</td></tr>`;
+            });
+            html += `</tbody></table>`;
+            const win = window.open();
+            win.document.write(buildPrintDocument("تقرير الأصناف منخفضة المخزون", html));
+            win.document.close();
+            win.print();
+        });
+        
+        document.getElementById('printFullInventoryBtn')?.addEventListener('click', () => {
+            if(products.length === 0) { alert("لا توجد أصناف للجرد"); return; }
+            let html = `<table border="1"><thead><tr><th>الصنف</th><th>الفئة</th><th>الكمية</th><th>الحد الأدنى</th><th>الموقع</th></tr></thead><tbody>`;
+            products.forEach(p => {
+                html += `<tr><td>${escapeHtml(p.name)}</td><td>${escapeHtml(p.category)}</td><td>${p.currentQty}</td><td>${p.minStock}</td><td>${escapeHtml(p.location || '—')}</td></tr>`;
+            });
+            html += `</tbody></table>`;
+            const win = window.open();
+            win.document.write(buildPrintDocument("تقرير الجرد الكامل", html));
+            win.document.close();
+            win.print();
+        });
+        
+        // تهيئة النظام
+        async function initApp() {
+            try {
+                await openDatabase();
+                
+                const loadingScreen = document.getElementById('loadingScreen');
+                if(loadingScreen) {
+                    loadingScreen.style.opacity = '0';
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+                    }, 500);
+                }
+                
+                await checkSession();
+                console.log('تم تهيئة النظام بنجاح');
+            } catch (error) {
+                console.error('خطأ في تهيئة النظام:', error);
+                const loadingScreen = document.getElementById('loadingScreen');
+                if(loadingScreen) {
+                    loadingScreen.innerHTML = `
+                        <div class="loading-content">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 50px; margin-bottom: 20px;"></i>
+                            <h2>حدث خطأ في تحميل النظام</h2>
+                            <p>يرجى تحديث الصفحة</p>
+                            <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: white; color: #667eea; border: none; border-radius: 20px; cursor: pointer;">تحديث الصفحة</button>
+                        </div>
+                    `;
+                }
+            }
+        }
+        
+        initApp();
+    </script>
+</body>
+</html>
